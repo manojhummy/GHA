@@ -23,6 +23,7 @@ jobs:
           username: ${{ secrets.ARTIFACTORY_USERNAME }}
           password: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
+
       - name: Build Docker Image
         run: |
           docker build -t ${{ secrets.ARTIFACTORY_URL }}/docker-trial/expense-app:1.0 .
