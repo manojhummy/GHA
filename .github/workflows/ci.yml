@@ -55,7 +55,7 @@ jobs:
         exit-code: '0'
         ignore-unfixed: true
         format: 'table'
-        path: .
+        input: '.''
 
     # ------------------------------
     # PART 3 - Upload .jar to Maven Repo
