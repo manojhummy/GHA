@@ -1,4 +1,4 @@
-name: Java CI Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -17,39 +17,55 @@ jobs:
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
-        distribution: "temurin"
-        java-version: "17"
+        java-version: '17'
+        distribution: 'temurin'
 
-    # -----------------------------
-    #  Task 1: Build with Maven
-    # -----------------------------
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
     - name: Build with Maven
-      run: mvn clean package -DskipTests=true
+      run: mvn -B clean package
 
-    # -----------------------------
-    #  Task 2: Run Unit Tests
-    # -----------------------------
-    - name: Run Tests
+    - name: Run Unit Tests
       run: mvn test
 
-    # -----------------------------
-    #  Task 3: SonarQube Scan (ADD HERE)
-    # -----------------------------
-    - name: Run SonarQube Scan
+    # ------------------------------
+    # PART 1 - SonarQube Analysis
+    # ------------------------------
+    - name: SonarQube Scan
       env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       run: |
         mvn sonar:sonar \
-          -Dsonar.projectKey=expenseapp \
           -Dsonar.host.url=$SONAR_HOST_URL \
           -Dsonar.login=$SONAR_TOKEN
 
-    # -----------------------------
-    #  Task 4: Package / Upload Artifact
-    # -----------------------------
-    - name: Upload JAR Artifact
-      uses: actions/upload-artifact@v3
+    # ------------------------------
+    # PART 2 - Trivy Security Scan
+    # ------------------------------
+    - name: Trivy FS Scan
+      uses: aquasecurity/trivy-action@master
       with:
-        name: myapp
-        path: target/*.jar
+        scan-type: 'fs'
+        severity: 'HIGH,CRITICAL'
+        exit-code: '0'
+        ignore-unfixed: true
+        format: 'table'
+        path: .
+
+    # ------------------------------
+    # PART 3 - Upload .jar to Maven Repo
+    # ------------------------------
+    - name: Upload JAR to Artifactory Maven Releases
+      env:
+        ART_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
+        ART_PASS: ${{ secrets.ARTIFACTORY_PASSWORD }}
+        ART_URL:  ${{ secrets.ARTIFACTORY_URL }}
+      run: |
+        curl -u $ART_USER:$ART_PASS \
+             -T target/*.jar \
+             "$ART_URL/maven-releases/"
