@@ -22,7 +22,7 @@ jobs:
       # Step 3: Create Dockerfile dynamically
       - name: Create Dockerfile
         run: |
-          echo 'FROM openjdk:17-jdk-slim' > Dockerfile
+          echo 'FROM openjdk:17-jdk' > Dockerfile
           echo 'WORKDIR /app' >> Dockerfile
           echo 'COPY target/*.jar app.jar' >> Dockerfile
           echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
