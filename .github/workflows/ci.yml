@@ -69,3 +69,13 @@ jobs:
         curl -u $ART_USER:$ART_PASS \
              -T target/*.jar \
              "$ART_URL/maven-releases/"
+
+    
+    # ------------------------------
+    # PART 4 - Upload JAR as Artifact
+    # ------------------------------
+    - name: Upload JAR Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-jar
+        path: target/*.jar
