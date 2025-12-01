@@ -6,7 +6,6 @@ on:
     workflows: ["CI Pipeline"]   # Must match the name in ci.yml
     types:
       - completed
-
 jobs:
   docker-build:
     runs-on: ubuntu-latest
