@@ -3,7 +3,7 @@ name: Day-3 Docker Build, Scan & Push
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   docker-build:
