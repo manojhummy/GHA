@@ -6,6 +6,11 @@ on:
     types:
       - completed
 
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+
 jobs:
   docker-build:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -29,7 +34,7 @@ jobs:
           echo 'FROM eclipse-temurin:17-jdk' > Dockerfile
           echo 'WORKDIR /app' >> Dockerfile
           echo 'COPY *.jar app.jar' >> Dockerfile
-          echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
+          echo 'ENTRYPOINT ["java","-jar","app.jar"]' >> Dockerfile
 
       - name: Login to Artifactory
         uses: docker/login-action@v2
