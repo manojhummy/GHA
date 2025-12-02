@@ -6,13 +6,16 @@ on:
     workflows: ["CI Pipeline"]
     types: [completed]
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   docker-build:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-
       - name: Download artifact from CI workflow
         uses: actions/download-artifact@v4
         with:
@@ -30,7 +33,7 @@ jobs:
         run: echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | docker login ${{ secrets.DOCKER_REPO }} -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_REPO }}/spring-app:latest .
+        run: docker build -t ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest .
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_REPO }}/spring-app:latest
+        run: docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
