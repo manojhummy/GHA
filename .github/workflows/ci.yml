@@ -67,8 +67,8 @@ jobs:
         ART_URL:  ${{ secrets.ARTIFACTORY_URL }}
       run: |
         curl -u $ART_USER:$ART_PASS \
-             -T target/*.jar \
-             "$ART_URL/maven-releases/"
+             -T target/myapp-1.0.jar \
+             "$ART_URL/maven-releases/com/example/myapp/1.0/myapp-1.0.jar"
 
     
     # ------------------------------
