@@ -1,3 +1,4 @@
+
 name: CI Pipeline
 
 on:
@@ -58,7 +59,7 @@ jobs:
         input: '.'
 
     # ------------------------------
-    # PART 3 - Upload .jar to Maven Repo
+    # PART 3 - Upload .jar to Maven Repo (Dynamic)
     # ------------------------------
     - name: Upload JAR to Artifactory Maven Releases
       env:
@@ -66,13 +67,14 @@ jobs:
         ART_PASS: ${{ secrets.ARTIFACTORY_PASSWORD }}
         ART_URL:  ${{ secrets.ARTIFACTORY_URL }}
       run: |
+        JAR_FILE=$(ls target/*.jar | head -n 1)
+        echo "Uploading $JAR_FILE to Artifactory..."
         curl -u $ART_USER:$ART_PASS \
-             -T target/myapp-1.0.jar \
-             "$ART_URL/maven-releases/com/example/myapp/1.0/myapp-1.0.jar"
+             -T $JAR_FILE \
+             "$ART_URL/maven-releases/com/example/myapp/1.0/$(basename $JAR_FILE)"
 
-    
     # ------------------------------
-    # PART 4 - Upload JAR as Artifact
+    # PART 4 - Upload JAR as GitHub Artifact
     # ------------------------------
     - name: Upload JAR Artifact
       uses: actions/upload-artifact@v4
