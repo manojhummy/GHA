@@ -5,31 +5,35 @@ on:
     workflows: ["CI Pipeline"]
     types: [completed]
 
+permissions:
+  contents: read
+  actions: read        # required to download artifact
+  id-token: write
+
 jobs:
-  docker-build:
+  docker:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Download artifact from CI
         uses: actions/download-artifact@v4
         with:
           name: app-jar
           path: build/
-          run-id: ${{ github.event.workflow_run.run_id }}   # <-- important fix
+          run-id: ${{ github.event.workflow_run.id }}   # <-- changed (id not run_id)
 
-      - name: Verify jar exists
+      - name: Verify files
         run: ls -R build
 
-      - name: Login to Artifactory Docker
+      - name: Docker Login
         run: |
-          echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | docker login ${{ secrets.DOCKER_REPO }} -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin
+          echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | \
+          docker login ${{ secrets.DOCKER_REPO }} \
+          -u "${{ secrets.ARTIFACTORY_USERNAME }}" --password-stdin
 
-      - name: Build Docker image
+      - name: Build image
         run: docker build -t ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest .
 
-      - name: Push Docker image
+      - name: Push image
         run: docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
