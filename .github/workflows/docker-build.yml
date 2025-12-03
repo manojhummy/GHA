@@ -11,24 +11,28 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download artifact generated from CI
+      - name: Download artifact from CI (no run-id)
         uses: actions/download-artifact@v4
         with:
-          name: app-jar          # must match exactly same name from CI
+          name: app-jar        # must match CI upload name exactly
           path: build/
-          run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Verify artifact downloaded
-        run: ls -R build/
+      - name: Verify jar exists
+        run: |
+          echo "Checking build directory..."
+          ls -l build
 
-      - name: Login to JFrog
-        run: echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | docker login ${{ secrets.DOCKER_REPO }} -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin
+      - name: Login to Artifactory Docker
+        run: |
+          echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | docker login ${{ secrets.DOCKER_REPO }} -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin
 
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest .
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest .
 
-      - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
