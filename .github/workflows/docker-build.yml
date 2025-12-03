@@ -8,7 +8,6 @@ on:
 permissions:
   contents: read
   actions: read
-  packages: write
 
 jobs:
   docker-build:
@@ -16,24 +15,41 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - name: Download artifact from CI pipeline
+        uses: actions/github-script@v6
         with:
-          name: app-jar                   # must match upload name exactly
-          path: build/                    # will store here
-          # ❗ remove run-id completely
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const artifact = artifacts.data.artifacts.find(a => a.name === "app-jar");
+            if (!artifact) throw new Error("Artifact app-jar not found!!!");
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: artifact.id,
+              archive_format: 'zip',
+            });
+            const fs = require('fs');
+            fs.writeFileSync('app-jar.zip', Buffer.from(download.data));
+            console.log("Downloaded artifact app-jar.zip");
 
-      - name: List files for confirmation
+      - name: Unzip artifact
+        run: unzip app-jar.zip -d build/
+
+      - name: List build directory
         run: ls -R build/
 
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to Artifactory
+      - name: Docker Login
         run: echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | docker login ${{ secrets.DOCKER_REPO }} -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin
 
-      - name: Build Docker image
+      - name: Build Docker Image
         run: docker build -t ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest .
 
-      - name: Push Docker image
+      - name: Push Docker Image
         run: docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
