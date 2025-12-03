@@ -14,25 +14,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download artifact from CI (no run-id)
+      - name: Download artifact from CI
         uses: actions/download-artifact@v4
         with:
-          name: app-jar        # must match CI upload name exactly
+          name: app-jar
           path: build/
+          run-id: ${{ github.event.workflow_run.run_id }}   # <-- important fix
 
       - name: Verify jar exists
-        run: |
-          echo "Checking build directory..."
-          ls -l build
+        run: ls -R build
 
       - name: Login to Artifactory Docker
         run: |
           echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | docker login ${{ secrets.DOCKER_REPO }} -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin
 
       - name: Build Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest .
+        run: docker build -t ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest .
 
       - name: Push Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
+        run: docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
