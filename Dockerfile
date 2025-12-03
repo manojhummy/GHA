@@ -1,14 +1,14 @@
-# Use OpenJDK image
-FROM openjdk:17-jdk-slim
+# Use stable Java 17 base image
+FROM eclipse-temurin:17-jdk-alpine
 
 # Create app directory
 WORKDIR /app
 
-# Copy jar file (GitHub Actions will unzip into build/)
+# Copy JAR downloaded from CI workflow
 COPY build/*.jar app.jar
 
-# Expose port
+# Expose application port
 EXPOSE 8080
 
-# Run the application
+# Run application
 ENTRYPOINT ["java", "-jar", "app.jar"]
