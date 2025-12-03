@@ -15,6 +15,10 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+      - name: Checkout code            # <---- move to first
+        uses: actions/checkout@v4
+
+      # ---------- Download artifact ----------
       - name: Download artifact from CI pipeline
         uses: actions/github-script@v6
         with:
@@ -42,9 +46,7 @@ jobs:
       - name: List build directory
         run: ls -R build/
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      # ---------- Docker Build & Push ----------
       - name: Docker Login
         run: echo "${{ secrets.ARTIFACTORY_PASSWORD }}" | docker login ${{ secrets.DOCKER_REPO }} -u ${{ secrets.ARTIFACTORY_USERNAME }} --password-stdin
 
