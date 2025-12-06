@@ -55,3 +55,5 @@ jobs:
 
       - name: Push Docker Image
         run: docker push ${{ secrets.DOCKER_REPO }}/docker-trial/spring-app:latest
+
+        
